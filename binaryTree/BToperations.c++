@@ -1,6 +1,7 @@
 #include<iostream>
 #include<vector>
 #include<queue>
+#include<algorithm>
 using namespace std;
 
 class Node{
@@ -110,6 +111,79 @@ int sum(Node *root){
     return leftSum+rightSum+root->data;
 }
 
+int dia1(Node *root){//o(n^2)
+    if(root==NULL){
+        return 0;
+    }
+
+    int currDia=mxHeight(root->left)+mxHeight(root->right)+1;//o(n)
+    int leftDia=dia1(root->left);
+    int rightDia=dia1(root->right);
+    
+    return max(currDia, max(leftDia, rightDia));
+}
+
+pair<int,int>dia2(Node *root){
+    if(root==NULL){
+        return make_pair(0,0);
+    }
+
+    //(diameter,height)
+    pair<int,int>leftInfo=dia2(root->left);
+    pair<int,int>rightInfo=dia2(root->right);
+    int currDia=leftInfo.second+rightInfo.second+1;
+    int finalDia=max(currDia,max(leftInfo.first,rightInfo.first));
+    int finalHt=max(leftInfo.second,rightInfo.second)+1;
+
+    return make_pair(finalDia,finalHt);
+}
+
+bool check(Node *root,Node *find){
+    if(root==NULL){
+        return false;
+    }
+
+    if(root->data==find->data){
+        return true;
+    }
+
+    return (check(root->left,find)||check(root->right,find));
+}
+
+bool isIdentical(Node *root1,Node *root2){
+    if(root1==NULL && root2==NULL){
+        return true;
+    }else if(root1==NULL || root2==NULL){
+        return false;
+    }
+
+    if(root1->data!=root2->data){
+        return false;
+    }
+
+    return isIdentical(root1->left,root2->left) && isIdentical(root1->right,root2->right);
+}
+
+bool subTreeCheck(Node *root,Node *subTree){
+    if(root==NULL && subTree==NULL){
+        return true;
+    }else if(root==NULL || subTree==NULL){
+        return false;
+    }
+
+    if(root->data==subTree->data){
+        if(isIdentical(root,subTree)){
+            return true;
+        }
+    }
+
+    if(!subTreeCheck(root->left,subTree)){
+        return subTreeCheck(root->right,subTree);
+    }
+
+    return true; 
+}
+
 int main(){
     vector<int>nodes={1,2,4,-1,-1,5,-1,-1,3,-1,6,-1,-1};
 
@@ -136,6 +210,30 @@ int main(){
     cout<<"Count No Of Nodes: "<<count(root)<<endl;
 
     cout<<"Sum Of Nodes: "<<sum(root)<<endl;
+
+    cout<<"Diameter Of A Tree: "<<dia1(root)<<endl;
+
+    pair<int,int>final=dia2(root);
+    cout<<"Height of the tree: "<<final.second<<" Diameter of a tree: "<<final.first<<endl;
+
+    //trial node exist or not
+    Node *newNode=new Node(2);
+    if(check(root,newNode)){
+        cout<<"Found :)"<<endl;
+    }else{
+        cout<<"Not Found :/"<<endl;
+    }
+
+    //subTree
+    Node *subTree=new Node(2);
+    subTree->left=new Node(4);
+    subTree->right=new Node(5);
+    if(subTreeCheck(root,newNode)){
+        cout<<"Found :)"<<endl;
+    }else{
+        cout<<"Not Found:/"<<endl;
+    }
+
 
     return 0;
 }
